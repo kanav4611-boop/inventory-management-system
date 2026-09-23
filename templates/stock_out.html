@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Out</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <h1>Stock Out</h1>
+
+    <h2>{{ product.name }}</h2>
+
+    <p>Current Stock: {{ product.quantity }}</p>
+
+    <form method="POST">
+
+        <label>Quantity to Remove:</label>
+        <br>
+
+        <input
+            type="number"
+            name="quantity"
+            min="1"
+            max="{{ product.quantity }}"
+            required
+        >
+
+        <br><br>
+
+        <button type="submit">Remove Stock</button>
+
+    </form>
+
+    <br>
+
+    <a href="{{ url_for('products') }}">
+        Back to Products
+    </a>
+
+</body>
+</html>

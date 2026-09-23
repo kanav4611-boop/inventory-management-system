@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Low Stock Alerts</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <h1>Low Stock Alerts</h1>
+
+    <br>
+
+    {% if products %}
+
+    <table border="1">
+
+        <tr>
+            <th>ID</th>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Minimum Stock</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for product in products %}
+
+        <tr>
+
+            <td>{{ product.id }}</td>
+
+            <td>{{ product.name }}</td>
+
+            <td>{{ product.category }}</td>
+
+            <td>{{ product.quantity }}</td>
+
+            <td>{{ product.minimum_stock }}</td>
+
+            <td>
+                ⚠️ Low Stock
+            </td>
+
+            <td>
+                <a href="{{ url_for('stock_in', id=product.id) }}">
+                    <button>Stock In</button>
+                </a>
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    {% else %}
+
+    <h3>✅ No Low Stock Products</h3>
+
+    <p>
+        All products currently have sufficient stock.
+    </p>
+
+    {% endif %}
+
+    <br>
+
+    <a href="{{ url_for('products') }}">
+        <button>Back to Products</button>
+    </a>
+
+</body>
+</html>
