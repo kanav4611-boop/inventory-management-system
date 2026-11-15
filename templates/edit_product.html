@@ -29,6 +29,9 @@
         <br>
 
         <form method="POST">
+            {% if error %}
+    <p class="form-error">{{ error }}</p>
+{% endif %}
 
             <label>Product Name</label>
             <input

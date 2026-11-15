@@ -1,6 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, make_response
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    login_required,
+    logout_user,
+    current_user
+)
+
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # -----------------------------------
@@ -122,7 +131,7 @@ class Transaction(db.Model):
             username=username
         ).first()
 
-        if user and user.password == password:
+        if user and check_password_hash(user.password, password):
             login_user(user)
 
             return redirect(url_for("home"))
@@ -196,9 +205,50 @@ def products():
 # 6. Add Product
 # -----------------------------------
 
+
 @app.route("/add-product", methods=["GET", "POST"])
 @login_required
 def add_product():
+
+    error = None
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        category = request.form.get("category", "").strip()
+
+        try:
+            price = float(request.form.get("price", ""))
+            quantity = int(request.form.get("quantity", ""))
+            minimum_stock = int(request.form.get("minimum_stock", ""))
+        except (ValueError, TypeError):
+            error = "Please enter valid numbers for price and quantities."
+        else:
+            if not name:
+                error = "Product name is required."
+            elif not category:
+                error = "Category is required."
+            elif price < 0:
+                error = "Price cannot be negative."
+            elif quantity < 0:
+                error = "Quantity cannot be negative."
+            elif minimum_stock < 0:
+                error = "Minimum stock cannot be negative."
+            else:
+                product = Product(
+                    name=name,
+                    category=category,
+                    price=price,
+                    quantity=quantity,
+                    minimum_stock=minimum_stock
+                )
+
+                db.session.add(product)
+                db.session.commit()
+
+                return redirect(url_for("products"))
+
+    return render_template("add_product.html", error=error)
+
 
     if request.method == "POST":
 
@@ -246,42 +296,50 @@ def add_product():
 # 7. Edit Product
 # -----------------------------------
 
+
 @app.route("/edit-product/<int:id>", methods=["GET", "POST"])
 @login_required
 def edit_product(id):
-
-    # Find product by ID
     product = Product.query.get_or_404(id)
+    error = None
 
     if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        category = request.form.get("category", "").strip()
 
-        product.name = request.form["name"]
+        try:
+            price = float(request.form.get("price", ""))
+            quantity = int(request.form.get("quantity", ""))
+            minimum_stock = int(request.form.get("minimum_stock", ""))
+        except (ValueError, TypeError):
+            error = "Please enter valid numbers for price and quantities."
+        else:
+            if not name:
+                error = "Product name is required."
+            elif not category:
+                error = "Category is required."
+            elif price < 0:
+                error = "Price cannot be negative."
+            elif quantity < 0:
+                error = "Quantity cannot be negative."
+            elif minimum_stock < 0:
+                error = "Minimum stock cannot be negative."
+            else:
+                product.name = name
+                product.category = category
+                product.price = price
+                product.quantity = quantity
+                product.minimum_stock = minimum_stock
 
-        product.category = request.form["category"]
-
-        product.price = float(
-            request.form["price"]
-        )
-
-        product.quantity = int(
-            request.form["quantity"]
-        )
-
-        product.minimum_stock = int(
-            request.form["minimum_stock"]
-        )
-
-        # Save changes
-        db.session.commit()
-
-        return redirect(
-            url_for("products")
-        )
+                db.session.commit()
+                return redirect(url_for("products"))
 
     return render_template(
         "edit_product.html",
-        product=product
+        product=product,
+        error=error
     )
+
 
 
 # -----------------------------------
@@ -304,65 +362,112 @@ def delete_product(id):
     return redirect(
         url_for("products")
     )
+
+
 @app.route("/stock-in/<int:id>", methods=["GET", "POST"])
 @login_required
 def stock_in(id):
+    product = Product.query.get_or_404(id)
+    error = None
 
     if request.method == "POST":
-        quantity = int(request.form["quantity"])
+        try:
+            quantity = int(request.form.get("quantity", ""))
+        except (ValueError, TypeError):
+            error = "Please enter a valid whole number."
+        else:
+            if quantity <= 0:
+                error = "Quantity must be greater than zero."
+            else:
+                product.quantity += quantity
 
-        product.quantity += quantity
+                transaction = Transaction(
+                    product_id=product.id,
+                    product_name=product.name,
+                    transaction_type="Stock In",
+                    quantity=quantity
+                )
 
-        transaction = Transaction(
-            product_id=product.id,
-            product_name=product.name,
-            transaction_type="Stock In",
-            quantity=quantity
-        )
+                db.session.add(transaction)
+                db.session.commit()
 
-        db.session.add(transaction)
-        db.session.commit()
+                return redirect(url_for("products"))
 
-        return redirect(url_for("products"))
+    return render_template(
+        "stock_in.html",
+        product=product,
+        error=error
+    )
 
-    return render_template("stock_in.html", product=product)
+
+
 @app.route("/stock-out/<int:id>", methods=["GET", "POST"])
 @login_required
 def stock_out(id):
     product = Product.query.get_or_404(id)
+    error = None
 
     if request.method == "POST":
-        quantity = int(request.form["quantity"])
+        try:
+            quantity = int(request.form.get("quantity", ""))
+        except (ValueError, TypeError):
+            error = "Please enter a valid whole number."
+        else:
+            if quantity <= 0:
+                error = "Quantity must be greater than zero."
+            elif quantity > product.quantity:
+                error = "Not enough stock available."
+            else:
+                product.quantity -= quantity
 
-        if quantity > product.quantity:
-            return "Not enough stock available."
+                transaction = Transaction(
+                    product_id=product.id,
+                    product_name=product.name,
+                    transaction_type="Stock Out",
+                    quantity=quantity
+                )
 
-        product.quantity -= quantity
+                db.session.add(transaction)
+                db.session.commit()
 
-        transaction = Transaction(
-            product_id=product.id,
-            product_name=product.name,
-            transaction_type="Stock Out",
-            quantity=quantity
-        )
+                return redirect(url_for("products"))
 
-        db.session.add(transaction)
-        db.session.commit()
+    return render_template(
+        "stock_out.html",
+        product=product,
+        error=error
+    )
 
-        return redirect(url_for("products"))
 
-    return render_template("stock_out.html", product=product)
 @app.route("/transactions")
 @login_required
 def transactions():
-    transactions = Transaction.query.order_by(
+    search = request.args.get("search", "").strip()
+    transaction_type = request.args.get("type", "").strip()
+
+    query = Transaction.query
+
+    if search:
+        query = query.filter(
+            Transaction.product_name.ilike(f"%{search}%")
+        )
+
+    if transaction_type in ["Stock In", "Stock Out"]:
+        query = query.filter(
+            Transaction.transaction_type == transaction_type
+        )
+
+    transactions = query.order_by(
         Transaction.date.desc()
     ).all()
 
     return render_template(
         "transactions.html",
-        transactions=transactions
+        transactions=transactions,
+        search=search,
+        transaction_type=transaction_type
     )
+
 @app.route("/low-stock")
 @login_required
 def low_stock():
@@ -384,6 +489,45 @@ def low_stock():
 with app.app_context():
 
     db.create_all()
+
+
+@app.route("/export-products")
+@login_required
+def export_products():
+    import csv
+    from io import StringIO
+
+    products = Product.query.order_by(Product.id).all()
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "ID",
+        "Product Name",
+        "Category",
+        "Price",
+        "Quantity",
+        "Minimum Stock"
+    ])
+
+    for product in products:
+        writer.writerow([
+            product.id,
+            product.name,
+            product.category,
+            product.price,
+            product.quantity,
+            product.minimum_stock
+        ])
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=inventory_products.csv"
+    )
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+
+    return response
 
 
 # -----------------------------------

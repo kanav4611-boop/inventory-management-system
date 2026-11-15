@@ -331,3 +331,57 @@ label {
 .form-container button {
     min-width: 120px;
 }
+
+/* Stock Information Card */
+
+.stock-info {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 5px solid #2563eb;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+.stock-info p {
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.stock-info h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+.stock-info h3 {
+    color: #2563eb;
+}
+
+/* Stock Out Styling */
+
+.stock-out-info {
+    border-left-color: #dc2626;
+}
+
+.stock-out-info h3 {
+    color: #dc2626;
+}
+
+.stock-error {
+    color: #dc2626;
+    background: #fee2e2;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+/* Form Validation Errors */
+
+.form-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}

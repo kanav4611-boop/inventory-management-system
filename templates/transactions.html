@@ -10,6 +10,44 @@
 <body>
 
     <h1>Transaction History</h1>
+    
+<form method="GET" action="{{ url_for('transactions') }}">
+    <label>Search by Product</label>
+
+    <input
+        type="text"
+        name="search"
+        placeholder="Enter product name"
+        value="{{ search }}"
+    >
+
+    <br><br>
+
+    <label>Transaction Type</label>
+
+    <select name="type">
+        <option value="">All Transactions</option>
+
+        <option value="Stock In"
+            {% if transaction_type == "Stock In" %}selected{% endif %}>
+            Stock In
+        </option>
+
+        <option value="Stock Out"
+            {% if transaction_type == "Stock Out" %}selected{% endif %}>
+            Stock Out
+        </option>
+    </select>
+
+    <br><br>
+
+    <button type="submit">Apply Filters</button>
+
+    <a href="{{ url_for('transactions') }}">
+        <button type="button">Clear Filters</button>
+    </a>
+</form>
+
 
     <br>
 

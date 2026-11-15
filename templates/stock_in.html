@@ -1,7 +1,8 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stock In</title>
+    <title>Stock In - Inventory System</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
@@ -9,35 +10,62 @@
 
 <body>
 
-    <h1>Stock In</h1>
+    <div class="navbar">
+        <h2>📦 Inventory System</h2>
 
-    <h2>{{ product.name }}</h2>
+        <div>
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('products') }}">Products</a>
+            <a href="{{ url_for('transactions') }}">Transactions</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
 
-    <p>Current Stock: {{ product.quantity }}</p>
+    <div class="form-container">
 
-    <form method="POST">
+        <h1>📥 Stock In</h1>
 
-        <label>Quantity to Add:</label>
+        <p>Add newly received stock to your inventory.</p>
+
         <br>
 
-        <input
-            type="number"
-            name="quantity"
-            min="1"
-            required
-        >
+        <div class="stock-info">
+            <p>Product Name</p>
+            <h2>{{ product.name }}</h2>
 
-        <br><br>
+            <p>Current Available Stock</p>
+            <h3>{{ product.quantity }} units</h3>
+        </div>
 
-        <button type="submit">Add Stock</button>
+        <br>
 
-    </form>
+        <form method="POST">
+            {% if error %}
+    <p class="form-error">{{ error }}</p>
+{% endif %}
 
-    <br>
+            <label>Quantity to Add</label>
 
-    <a href="{{ url_for('products') }}">
-        Back to Products
-    </a>
+            <input
+                type="number"
+                name="quantity"
+                min="1"
+                step="1"
+                placeholder="Enter quantity to add"
+                required
+            >
+
+            <br><br>
+
+            <button type="submit">Add Stock</button>
+
+            <a href="{{ url_for('products') }}">
+                <button type="button">Cancel</button>
+            </a>
+
+        </form>
+
+    </div>
 
 </body>
 </html>

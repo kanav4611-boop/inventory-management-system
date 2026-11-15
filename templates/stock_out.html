@@ -1,7 +1,8 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stock Out</title>
+    <title>Stock Out - Inventory System</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
@@ -9,36 +10,77 @@
 
 <body>
 
-    <h1>Stock Out</h1>
+    <div class="navbar">
+        <h2>📦 Inventory System</h2>
 
-    <h2>{{ product.name }}</h2>
+        <div>
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('products') }}">Products</a>
+            <a href="{{ url_for('transactions') }}">Transactions</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
 
-    <p>Current Stock: {{ product.quantity }}</p>
+    <div class="form-container">
 
-    <form method="POST">
+        <h1>📤 Stock Out</h1>
 
-        <label>Quantity to Remove:</label>
+        <p>Record products sold or removed from inventory.</p>
+
         <br>
 
-        <input
-            type="number"
-            name="quantity"
-            min="1"
-            max="{{ product.quantity }}"
-            required
-        >
+        <div class="stock-info stock-out-info">
+            <p>Product Name</p>
+            <h2>{{ product.name }}</h2>
 
-        <br><br>
+            <p>Currently Available Stock</p>
+            <h3>{{ product.quantity }} units</h3>
+        </div>
 
-        <button type="submit">Remove Stock</button>
+        <br>
 
-    </form>
+        {% if product.quantity > 0 %}
 
-    <br>
+        <form method="POST">
+            {% if error %}
+    <p class="form-error">{{ error }}</p>
+{% endif %}
 
-    <a href="{{ url_for('products') }}">
-        Back to Products
-    </a>
+            <label>Quantity to Remove</label>
+
+            <input
+                type="number"
+                name="quantity"
+                min="1"
+                max="{{ product.quantity }}"
+                step="1"
+                placeholder="Enter quantity to remove"
+                required
+            >
+
+            <br><br>
+
+            <button type="submit">Remove Stock</button>
+
+            <a href="{{ url_for('products') }}">
+                <button type="button">Cancel</button>
+            </a>
+
+        </form>
+
+        {% else %}
+
+        <p class="stock-error">
+            No stock is available for this product.
+        </p>
+
+        <br>
+
+        {% endif %}
+
+        <a href="{{ url_for('products') }}">Back to Products</a>
+
+    </div>
 
 </body>
 </html>
