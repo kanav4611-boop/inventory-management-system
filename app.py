@@ -168,14 +168,26 @@ def home():
         Transaction.date.desc()
     ).limit(5).all()
 
+    # Dashboard chart data
+    category_data = db.session.query(
+        Product.category,
+        db.func.sum(Product.quantity)
+    ).group_by(Product.category).all()
+
+    chart_labels = [item[0] for item in category_data]
+    chart_values = [item[1] for item in category_data]
+
     return render_template(
         "index.html",
         total_products=total_products,
         total_stock=total_stock,
         low_stock_products=low_stock_products,
         total_transactions=total_transactions,
-        recent_transactions=recent_transactions
+        recent_transactions=recent_transactions,
+        chart_labels=chart_labels,
+        chart_values=chart_values
     )
+
 
 # -----------------------------------
 # 5. Products Page
@@ -597,7 +609,14 @@ def export_transactions():
     response.headers["Content-Type"] = "text/csv; charset=utf-8"
 
     return response
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("404.html"), 404
 
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template("500.html"), 500
 if __name__ == "__main__":
 
     app.run(debug=True)
