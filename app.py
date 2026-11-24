@@ -185,21 +185,38 @@ def home():
 @login_required
 def products():
 
-    search = request.args.get("search", "")
+    search = request.args.get("search", "").strip()
+    category = request.args.get("category", "").strip()
+
+    query = Product.query
 
     if search:
-        products = Product.query.filter(
+        query = query.filter(
             Product.name.ilike(f"%{search}%")
-        ).all()
-    else:
-        products = Product.query.all()
+        )
+
+    if category:
+        query = query.filter(
+            Product.category == category
+        )
+
+    products = query.all()
+
+    categories = db.session.query(
+        Product.category
+    ).distinct().all()
+
+    categories = [
+        item[0] for item in categories if item[0]
+    ]
 
     return render_template(
         "products.html",
         products=products,
-        search=search
+        search=search,
+        category=category,
+        categories=categories
     )
-
 
 # -----------------------------------
 # 6. Add Product
