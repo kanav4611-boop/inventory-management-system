@@ -347,22 +347,17 @@ def edit_product(id):
 # 8. Delete Product
 # -----------------------------------
 
-@app.route("/delete-product/<int:id>")
+@app.route("/delete-product/<int:id>", methods=["POST"])
 @login_required
 def delete_product(id):
-
-    # Find product
     product = Product.query.get_or_404(id)
 
-    # Delete product
     db.session.delete(product)
-
-    # Save changes
     db.session.commit()
 
-    return redirect(
-        url_for("products")
-    )
+    flash("Product deleted successfully!", "success")
+
+    return redirect(url_for("products"))
 
 
 @app.route("/stock-in/<int:id>", methods=["GET", "POST"])
