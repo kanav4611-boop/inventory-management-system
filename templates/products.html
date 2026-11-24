@@ -83,6 +83,13 @@
         name="search"
         placeholder="Search product..."
         value="{{ search }}"
+        <select name="sort">
+    <option value="">Default Sorting</option>
+    <option value="name" {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
+    <option value="price_low" {% if sort == "price_low" %}selected{% endif %}>Price Low to High</option>
+    <option value="price_high" {% if sort == "price_high" %}selected{% endif %}>Price High to Low</option>
+    <option value="quantity" {% if sort == "quantity" %}selected{% endif %}>Lowest Stock First</option>
+</select>
     >
 
     <select name="category">

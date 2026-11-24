@@ -181,42 +181,52 @@ def home():
 # 5. Products Page
 # -----------------------------------
 
+
 @app.route("/products")
 @login_required
 def products():
-
     search = request.args.get("search", "").strip()
     category = request.args.get("category", "").strip()
+    sort = request.args.get("sort", "").strip()
 
     query = Product.query
 
+    # Search by product name
     if search:
-        query = query.filter(
-            Product.name.ilike(f"%{search}%")
-        )
+        query = query.filter(Product.name.ilike(f"%{search}%"))
 
+    # Filter by category
     if category:
-        query = query.filter(
-            Product.category == category
-        )
+        query = query.filter(Product.category == category)
 
-    products = query.all()
+    # Sort products
+    if sort == "price_low":
+        query = query.order_by(Product.price.asc())
+    elif sort == "price_high":
+        query = query.order_by(Product.price.desc())
+    elif sort == "quantity":
+        query = query.order_by(Product.quantity.asc())
+    elif sort == "name":
+        query = query.order_by(Product.name.asc())
 
-    categories = db.session.query(
-        Product.category
-    ).distinct().all()
+    # Pagination
+    page = request.args.get("page", 1, type=int)
+    pagination = query.paginate(page=page, per_page=5, error_out=False)
+    products = pagination.items
 
-    categories = [
-        item[0] for item in categories if item[0]
-    ]
+    categories = db.session.query(Product.category).distinct().all()
+    categories = [item[0] for item in categories if item[0]]
 
     return render_template(
         "products.html",
         products=products,
         search=search,
         category=category,
-        categories=categories
+        categories=categories,
+        sort=sort,
+        pagination=pagination
     )
+
 
 # -----------------------------------
 # 6. Add Product
