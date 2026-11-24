@@ -560,6 +560,44 @@ def export_products():
 # 10. Run Application
 # -----------------------------------
 
+@app.route("/export-transactions")
+@login_required
+def export_transactions():
+    import csv
+    from io import StringIO
+
+    transactions = Transaction.query.order_by(
+        Transaction.date.desc()
+    ).all()
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "ID",
+        "Product",
+        "Transaction Type",
+        "Quantity",
+        "Date"
+    ])
+
+    for transaction in transactions:
+        writer.writerow([
+            transaction.id,
+            transaction.product_name,
+            transaction.transaction_type,
+            transaction.quantity,
+            transaction.date
+        ])
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=transaction_history.csv"
+    )
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+
+    return response
+
 if __name__ == "__main__":
 
     app.run(debug=True)
