@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, make_response
+from flask import Flask, render_template, request, redirect, url_for, make_response, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     LoginManager,
@@ -244,7 +244,7 @@ def add_product():
 
                 db.session.add(product)
                 db.session.commit()
-
+                flash("Product added successfully!", "success")
                 return redirect(url_for("products"))
 
     return render_template("add_product.html", error=error)
@@ -281,7 +281,7 @@ def add_product():
         db.session.add(product)
 
         db.session.commit()
-
+    
         # Go back to products page
         return redirect(
             url_for("products")
@@ -332,6 +332,7 @@ def edit_product(id):
                 product.minimum_stock = minimum_stock
 
                 db.session.commit()
+                flash("Product updated successfully!", "success")
                 return redirect(url_for("products"))
 
     return render_template(
@@ -388,10 +389,12 @@ def stock_in(id):
                     quantity=quantity
                 )
 
-                db.session.add(transaction)
-                db.session.commit()
+            db.session.add(transaction)
+            db.session.commit()
 
-                return redirect(url_for("products"))
+            flash("Stock added successfully!", "success")
+
+            return redirect(url_for("products"))
 
     return render_template(
         "stock_in.html",
@@ -429,6 +432,7 @@ def stock_out(id):
 
                 db.session.add(transaction)
                 db.session.commit()
+                flash("Stock removed successfully!", "success")
 
                 return redirect(url_for("products"))
 

@@ -385,3 +385,11 @@ label {
     margin-bottom: 15px;
     font-weight: bold;
 }
+.flash-message {
+    padding: 12px;
+    margin: 15px 0;
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 7px;
+    font-weight: bold;
+}
