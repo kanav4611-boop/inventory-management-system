@@ -1,3 +1,6 @@
+import sqlite3
+from io import BytesIO
+from flask import send_file
 from flask import Flask, render_template, request, redirect, url_for, make_response, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
@@ -617,6 +620,27 @@ def page_not_found(error):
 @app.errorhandler(500)
 def internal_server_error(error):
     return render_template("500.html"), 500
+
+@app.route("/backup-database")
+@login_required
+def backup_database():
+    source = db.engine.raw_connection()
+    backup_db = sqlite3.connect(":memory:")
+
+    try:
+        source.backup(backup_db)
+        backup_data = backup_db.serialize()
+    finally:
+        backup_db.close()
+        source.close()
+
+    return send_file(
+        BytesIO(backup_data),
+        mimetype="application/x-sqlite3",
+        as_attachment=True,
+        download_name="inventory_backup.db"
+    )
+
 if __name__ == "__main__":
 
     app.run(debug=True)

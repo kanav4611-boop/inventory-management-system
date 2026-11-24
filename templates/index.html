@@ -1,9 +1,9 @@
 
+
 <!DOCTYPE html>
 <html>
 
 <head>
-
     <title>Inventory Dashboard</title>
 
     <link rel="stylesheet"
@@ -11,99 +11,61 @@
 
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 
 <body>
 
     <!-- Navigation Bar -->
-
     <div class="navbar">
 
         <h2>📦 Inventory System</h2>
 
         <div>
-
-            <a href="{{ url_for('products') }}">
-                Products
-            </a>
-
-            <a href="{{ url_for('transactions') }}">
-                Transactions
-            </a>
-
-            <a href="{{ url_for('low_stock') }}">
-                Low Stock
-            </a>
-
-            <a href="{{ url_for('logout') }}">
-                Logout
-            </a>
-
+            <a href="{{ url_for('products') }}">Products</a>
+            <a href="{{ url_for('transactions') }}">Transactions</a>
+            <a href="{{ url_for('low_stock') }}">Low Stock</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
         </div>
 
     </div>
 
 
     <!-- Dashboard -->
-
     <div class="dashboard-container">
 
         <div class="dashboard-header">
-
             <h1>Inventory Dashboard</h1>
-
-            <p>
-                Monitor your products, stock levels and transactions.
-            </p>
-
+            <p>Monitor your products, stock levels and transactions.</p>
         </div>
 
 
         <!-- Dashboard Cards -->
-
         <div class="dashboard-cards">
 
             <div class="dashboard-card">
-
                 <p>📦 Total Products</p>
-
                 <h3>{{ total_products }}</h3>
-
             </div>
 
-
             <div class="dashboard-card">
-
                 <p>📊 Total Stock</p>
-
                 <h3>{{ total_stock }}</h3>
-
             </div>
 
-
             <div class="dashboard-card">
-
                 <p>⚠️ Low Stock</p>
-
                 <h3>{{ low_stock_products }}</h3>
-
             </div>
 
-
             <div class="dashboard-card">
-
                 <p>🔄 Transactions</p>
-
                 <h3>{{ total_transactions }}</h3>
-
             </div>
 
         </div>
 
 
         <!-- Category Stock Chart -->
-
         <div class="dashboard-card">
 
             <h2>Products by Category</h2>
@@ -116,7 +78,6 @@
 
 
         <!-- Quick Actions -->
-
         <h2>Quick Actions</h2>
 
         <br>
@@ -135,7 +96,6 @@
 
 
         <!-- Recent Transactions -->
-
         <br><br>
 
         <h2>Recent Transactions</h2>
@@ -155,17 +115,11 @@
             {% for transaction in recent_transactions %}
 
             <tr>
-
                 <td>{{ transaction.id }}</td>
-
                 <td>{{ transaction.product_name }}</td>
-
                 <td>{{ transaction.transaction_type }}</td>
-
                 <td>{{ transaction.quantity }}</td>
-
                 <td>{{ transaction.date }}</td>
-
             </tr>
 
             {% endfor %}
@@ -181,44 +135,51 @@
     </div>
 
 
+    <!-- Chart Data -->
+    <script id="chart-data" type="application/json">
+    {
+        "labels": {{ chart_labels | tojson }},
+        "values": {{ chart_values | tojson }}
+    }
+    </script>
+
+
     <!-- Chart JavaScript -->
+    <script>
 
-    
-<script id="chart-data" type="application/json">
-{
-    "labels": {{ chart_labels | tojson }},
-    "values": {{ chart_values | tojson }}
-}
-</script>
+        const chartData = JSON.parse(
+            document.getElementById('chart-data').textContent
+        );
 
-<script>
-    const chartData = JSON.parse(
-        document.getElementById('chart-data').textContent
-    );
+        const ctx = document.getElementById('categoryChart');
 
-    const ctx = document.getElementById('categoryChart');
+        new Chart(ctx, {
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: chartData.labels,
-            datasets: [{
-                label: 'Total Stock',
-                data: chartData.values,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
+            type: 'bar',
+
+            data: {
+                labels: chartData.labels,
+
+                datasets: [{
+                    label: 'Total Stock',
+                    data: chartData.values,
+                    borderWidth: 1
+                }]
+            },
+
+            options: {
+                responsive: true,
+
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
-</script>
 
+        });
+
+    </script>
 
 </body>
 
