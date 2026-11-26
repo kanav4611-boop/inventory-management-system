@@ -569,16 +569,20 @@ def transactions():
     except ValueError:
         error = "Please enter valid dates in the date fields."
 
+    page = request.args.get("page", 1, type=int)
     if error:
+        pagination = None
         transactions = []
     else:
-        transactions = query.order_by(
+        pagination = query.order_by(
             Transaction.date.desc()
-        ).all()
+        ).paginate(page=page, per_page=10, error_out=False)
+        transactions = pagination.items
 
     return render_template(
         "transactions.html",
         transactions=transactions,
+        pagination=pagination,
         search=search,
         transaction_type=transaction_type,
         date_from=date_from,

@@ -64,6 +64,18 @@
 </form>
 
 
+    {% if pagination %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('transactions', page=pagination.prev_num, search=search, type=transaction_type, date_from=date_from, date_to=date_to) }}">Previous</a>
+        {% endif %}
+        <span>Page {{ pagination.page }} of {{ pagination.pages or 1 }}</span>
+        {% if pagination.has_next %}
+        <a href="{{ url_for('transactions', page=pagination.next_num, search=search, type=transaction_type, date_from=date_from, date_to=date_to) }}">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
     <br>
 
     <table border="1">
