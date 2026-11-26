@@ -591,6 +591,45 @@ with app.app_context():
     db.create_all()
 
 
+@app.route("/export-low-stock")
+@login_required
+def export_low_stock():
+    import csv
+    from io import StringIO
+
+    products = Product.query.filter(
+        Product.quantity <= Product.minimum_stock
+    ).order_by(Product.name.asc()).all()
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Product ID",
+        "Product Name",
+        "Category",
+        "Price",
+        "Available Quantity",
+        "Minimum Stock"
+    ])
+
+    for product in products:
+        writer.writerow([
+            product.id,
+            product.name,
+            product.category,
+            product.price,
+            product.quantity,
+            product.minimum_stock
+        ])
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=low_stock_report.csv"
+    )
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return response
+
+
 @app.route("/export-products")
 @login_required
 def export_products():
