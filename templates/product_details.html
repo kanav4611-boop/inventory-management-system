@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ product.name }} - Product Details</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        @media print {
+            .navbar, button, a, .no-print { display: none !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .container { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            table { page-break-inside: avoid; }
+            h1, h2 { color: #000 !important; }
+        }
+    </style>
 </head>
 <body>
     <div class="navbar">
@@ -20,6 +29,7 @@
 
     <div class="container">
         <h1>Product Details</h1>
+        <button type="button" onclick="window.print()">Print Product Details</button>
         <div class="dashboard-cards">
             <div class="dashboard-card">
                 <p>Product Name</p>
