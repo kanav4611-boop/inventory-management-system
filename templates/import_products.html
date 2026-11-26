@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import Products from CSV</title><link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"></head>
+<body><div class="container">
+<h1>Import Products from CSV</h1>
+<p>Upload a UTF-8 CSV file with these exact column headings:</p>
+<code>name, category, price, quantity, minimum_stock</code>
+<p>Maximum 500 product rows per upload. All rows are validated before saving.</p>
+{% if error %}<div class="form-error">{{ error }}</div>{% endif %}
+<form method="POST" enctype="multipart/form-data">
+<label for="file">CSV File</label>
+<input id="file" type="file" name="file" accept=".csv,text/csv" required>
+<button type="submit">Import Products</button>
+</form>
+<p><a href="{{ url_for('products') }}">Back to Products</a></p>
+</div></body></html>

@@ -755,6 +755,71 @@ def export_low_stock():
     return response
 
 
+@app.route("/import-products", methods=["GET", "POST"])
+@login_required
+def import_products():
+    error = None
+    imported_count = 0
+
+    if request.method == "POST":
+        uploaded_file = request.files.get("file")
+        if not uploaded_file or not uploaded_file.filename:
+            error = "Choose a CSV file to import."
+        elif not uploaded_file.filename.lower().endswith(".csv"):
+            error = "Only CSV files are supported."
+        else:
+            import csv
+            import io
+            try:
+                text_data = uploaded_file.stream.read().decode("utf-8-sig")
+                reader = csv.DictReader(io.StringIO(text_data))
+                required = {"name", "category", "price", "quantity", "minimum_stock"}
+                if not reader.fieldnames or not required.issubset(
+                    {field.strip().lower() for field in reader.fieldnames if field}
+                ):
+                    error = "CSV headers must include: name, category, price, quantity, minimum_stock."
+                else:
+                    # Normalize header names while preserving row values.
+                    rows = []
+                    for row_number, row in enumerate(reader, start=2):
+                        normalized = {
+                            (key or "").strip().lower(): (value or "").strip()
+                            for key, value in row.items()
+                        }
+                        name = normalized.get("name", "")
+                        category = normalized.get("category", "")
+                        price = float(normalized.get("price", ""))
+                        quantity = int(normalized.get("quantity", ""))
+                        minimum_stock = int(normalized.get("minimum_stock", ""))
+                        if not name or not category or len(name) > 100 or len(category) > 100:
+                            raise ValueError(f"Row {row_number}: product name/category is missing or too long.")
+                        if not math.isfinite(price) or price < 0 or quantity < 0 or minimum_stock < 0:
+                            raise ValueError(f"Row {row_number}: values must be non-negative and valid.")
+                        rows.append(Product(
+                            name=name,
+                            category=category,
+                            price=price,
+                            quantity=quantity,
+                            minimum_stock=minimum_stock
+                        ))
+                        if len(rows) > 500:
+                            raise ValueError("A maximum of 500 products can be imported at once.")
+                    if not rows:
+                        error = "The CSV file does not contain any product rows."
+                    else:
+                        db.session.add_all(rows)
+                        log_activity("Products Imported", f"Imported {len(rows)} products from CSV")
+                        db.session.commit()
+                        imported_count = len(rows)
+                        flash(f"Successfully imported {imported_count} products.", "success")
+                        return redirect(url_for("products"))
+            except (UnicodeDecodeError, csv.Error, ValueError, TypeError) as exc:
+                db.session.rollback()
+                error = str(exc) or "The CSV file could not be processed."
+
+    return render_template("import_products.html", error=error, imported_count=imported_count)
+
+
 @app.route("/export-products")
 @login_required
 def export_products():
