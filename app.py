@@ -583,6 +583,45 @@ def transactions():
         error=error
     )
 
+@app.route("/stock-summary")
+@login_required
+def stock_summary():
+    total_stock_in = db.session.query(
+        db.func.sum(Transaction.quantity)
+    ).filter(Transaction.transaction_type == "Stock In").scalar() or 0
+
+    total_stock_out = db.session.query(
+        db.func.sum(Transaction.quantity)
+    ).filter(Transaction.transaction_type == "Stock Out").scalar() or 0
+
+    stock_in_by_product = db.session.query(
+        Transaction.product_name,
+        db.func.sum(Transaction.quantity).label("total")
+    ).filter(
+        Transaction.transaction_type == "Stock In"
+    ).group_by(Transaction.product_id, Transaction.product_name).order_by(
+        db.func.sum(Transaction.quantity).desc()
+    ).all()
+
+    stock_out_by_product = db.session.query(
+        Transaction.product_name,
+        db.func.sum(Transaction.quantity).label("total")
+    ).filter(
+        Transaction.transaction_type == "Stock Out"
+    ).group_by(Transaction.product_id, Transaction.product_name).order_by(
+        db.func.sum(Transaction.quantity).desc()
+    ).all()
+
+    return render_template(
+        "stock_summary.html",
+        total_stock_in=total_stock_in,
+        total_stock_out=total_stock_out,
+        net_movement=total_stock_in - total_stock_out,
+        stock_in_by_product=stock_in_by_product,
+        stock_out_by_product=stock_out_by_product
+    )
+
+
 @app.route("/low-stock")
 @login_required
 def low_stock():

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Movement Summary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <h2>📦 Inventory System</h2>
+        <div>
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('products') }}">Products</a>
+            <a href="{{ url_for('transactions') }}">Transactions</a>
+            <a href="{{ url_for('low_stock') }}">Low Stock</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Stock Movement Summary</h1>
+        <p>Overview of stock received and stock issued based on recorded transactions.</p>
+        <div class="dashboard-cards">
+            <div class="dashboard-card"><p>Total Stock In</p><h3>{{ total_stock_in }}</h3></div>
+            <div class="dashboard-card"><p>Total Stock Out</p><h3>{{ total_stock_out }}</h3></div>
+            <div class="dashboard-card"><p>Net Movement</p><h3>{{ net_movement }}</h3></div>
+        </div>
+
+        <h2>Stock Received by Product</h2>
+        {% if stock_in_by_product %}
+        <table>
+            <tr><th>Product</th><th>Total Quantity Received</th></tr>
+            {% for name, total in stock_in_by_product %}
+            <tr><td>{{ name }}</td><td>{{ total }}</td></tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No stock-in transactions recorded yet.</p>
+        {% endif %}
+
+        <h2>Stock Issued by Product</h2>
+        {% if stock_out_by_product %}
+        <table>
+            <tr><th>Product</th><th>Total Quantity Issued</th></tr>
+            {% for name, total in stock_out_by_product %}
+            <tr><td>{{ name }}</td><td>{{ total }}</td></tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No stock-out transactions recorded yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
