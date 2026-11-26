@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime, timedelta
 from io import BytesIO
 from flask import send_file
 from flask import Flask, render_template, request, redirect, url_for, make_response, flash
@@ -530,6 +531,9 @@ def product_details(id):
 def transactions():
     search = request.args.get("search", "").strip()
     transaction_type = request.args.get("type", "").strip()
+    date_from = request.args.get("date_from", "").strip()
+    date_to = request.args.get("date_to", "").strip()
+    error = None
 
     query = Transaction.query
 
@@ -543,15 +547,40 @@ def transactions():
             Transaction.transaction_type == transaction_type
         )
 
-    transactions = query.order_by(
-        Transaction.date.desc()
-    ).all()
+    start_date = None
+    end_date = None
+    try:
+        if date_from:
+            start_date = datetime.strptime(date_from, "%Y-%m-%d")
+        if date_to:
+            end_date = datetime.strptime(date_to, "%Y-%m-%d")
+        if start_date and end_date and start_date > end_date:
+            error = "The start date cannot be later than the end date."
+        else:
+            if start_date:
+                query = query.filter(Transaction.date >= start_date)
+            if end_date:
+                query = query.filter(
+                    Transaction.date < end_date + timedelta(days=1)
+                )
+    except ValueError:
+        error = "Please enter valid dates in the date fields."
+
+    if error:
+        transactions = []
+    else:
+        transactions = query.order_by(
+            Transaction.date.desc()
+        ).all()
 
     return render_template(
         "transactions.html",
         transactions=transactions,
         search=search,
-        transaction_type=transaction_type
+        transaction_type=transaction_type,
+        date_from=date_from,
+        date_to=date_to,
+        error=error
     )
 
 @app.route("/low-stock")

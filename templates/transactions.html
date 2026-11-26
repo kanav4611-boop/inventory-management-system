@@ -13,6 +13,9 @@
     <a href="{{ url_for('export_transactions') }}">
     <button type="button">📥 Export Transactions CSV</button>
 </a>
+{% if error %}
+    <div class="form-error">{{ error }}</div>
+{% endif %}
 <form method="GET" action="{{ url_for('transactions') }}">
     <label>Search by Product</label>
 
@@ -22,6 +25,16 @@
         placeholder="Enter product name"
         value="{{ search }}"
     >
+
+    <br><br>
+
+    <label>From Date</label>
+    <input type="date" name="date_from" value="{{ date_from }}">
+
+    <br><br>
+
+    <label>To Date</label>
+    <input type="date" name="date_to" value="{{ date_to }}">
 
     <br><br>
 
