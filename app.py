@@ -119,34 +119,64 @@ class Transaction(db.Model):
         default=db.func.now()
     )
 
-    @login_manager.user_loader
-    def load_user(user_id):
-     return User.query.get(int(user_id))
-    @app.route("/login", methods=["GET", "POST"])
-    def login():
+# -----------------------------------
+# 3A. Authentication
+# -----------------------------------
 
-     if request.method == "POST":
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
 
-        username = request.form["username"]
-        password = request.form["password"]
 
-        user = User.query.filter_by(
-            username=username
-        ).first()
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        user = User.query.filter_by(username=username).first()
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-
             return redirect(url_for("home"))
 
-        return "Invalid username or password."
+        flash("Invalid username or password.", "error")
 
-     return render_template("login.html")
-    @app.route("/logout")
-    @login_required
-    def logout():
-     logout_user()
-     return redirect(url_for("login"))
+    return render_template("login.html")
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
+
+@app.route("/change-password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    error = None
+
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "")
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not check_password_hash(current_user.password, current_password):
+            error = "Current password is incorrect."
+        elif len(new_password) < 8:
+            error = "New password must contain at least 8 characters."
+        elif new_password != confirm_password:
+            error = "New passwords do not match."
+        elif new_password == current_password:
+            error = "Choose a new password different from your current password."
+        else:
+            current_user.password = generate_password_hash(new_password)
+            db.session.commit()
+            logout_user()
+            flash("Password changed successfully. Please log in again.", "success")
+            return redirect(url_for("login"))
+
+    return render_template("change_password.html", error=error)
 
 # -----------------------------------
 # 4. Home Page
