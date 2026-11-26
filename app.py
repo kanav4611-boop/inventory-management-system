@@ -590,6 +590,39 @@ def transactions():
         error=error
     )
 
+@app.route("/reorder-report")
+@login_required
+def reorder_report():
+    products = Product.query.filter(
+        Product.quantity <= Product.minimum_stock
+    ).order_by(
+        Product.quantity.asc(),
+        Product.name.asc()
+    ).all()
+
+    recommendations = []
+    for product in products:
+        suggested_quantity = max(
+            product.minimum_stock * 2 - product.quantity,
+            1
+        )
+        recommendations.append({
+            "product": product,
+            "suggested_quantity": suggested_quantity,
+            "estimated_cost": suggested_quantity * product.price
+        })
+
+    total_estimated_cost = sum(
+        item["estimated_cost"] for item in recommendations
+    )
+
+    return render_template(
+        "reorder_report.html",
+        recommendations=recommendations,
+        total_estimated_cost=total_estimated_cost
+    )
+
+
 @app.route("/stock-summary")
 @login_required
 def stock_summary():
