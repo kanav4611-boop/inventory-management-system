@@ -121,6 +121,25 @@ class Transaction(db.Model):
         default=db.func.now()
     )
 
+class ActivityLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=True)
+    username = db.Column(db.String(100), nullable=False)
+    action = db.Column(db.String(80), nullable=False)
+    details = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.now())
+
+
+def log_activity(action, details):
+    if current_user.is_authenticated:
+        db.session.add(ActivityLog(
+            user_id=current_user.id,
+            username=current_user.username,
+            action=action,
+            details=details
+        ))
+
+
 # -----------------------------------
 # 3A. Authentication
 # -----------------------------------
@@ -173,6 +192,7 @@ def change_password():
             error = "Choose a new password different from your current password."
         else:
             current_user.password = generate_password_hash(new_password)
+            log_activity("Password Changed", "Admin password was updated")
             db.session.commit()
             logout_user()
             flash("Password changed successfully. Please log in again.", "success")
@@ -313,6 +333,7 @@ def add_product():
                     minimum_stock=minimum_stock
                 )
                 db.session.add(product)
+                log_activity("Product Added", f"Added product: {product.name}")
                 db.session.commit()
                 flash("Product added successfully!", "success")
                 return redirect(url_for("products"))
@@ -356,6 +377,7 @@ def edit_product(id):
                 product.price = price
                 product.quantity = quantity
                 product.minimum_stock = minimum_stock
+                log_activity("Product Updated", f"Updated product: {product.name}")
                 db.session.commit()
                 flash("Product updated successfully!", "success")
                 return redirect(url_for("products"))
@@ -376,6 +398,7 @@ def edit_product(id):
 def delete_product(id):
     product = Product.query.get_or_404(id)
 
+    log_activity("Product Deleted", f"Deleted product: {product.name}")
     db.session.delete(product)
     db.session.commit()
 
@@ -407,6 +430,7 @@ def stock_in(id):
                     quantity=quantity
                 )
                 db.session.add(transaction)
+                log_activity("Stock In", f"Added {quantity} units of {product.name}")
                 db.session.commit()
                 flash("Stock added successfully!", "success")
                 return redirect(url_for("products"))
@@ -445,6 +469,7 @@ def stock_out(id):
                 )
 
                 db.session.add(transaction)
+                log_activity("Stock Out", f"Removed {quantity} units of {product.name}")
                 db.session.commit()
                 flash("Stock removed successfully!", "success")
 
@@ -565,6 +590,19 @@ def stock_summary():
         net_movement=total_stock_in - total_stock_out,
         stock_in_by_product=stock_in_by_product,
         stock_out_by_product=stock_out_by_product
+    )
+
+
+@app.route("/activity-log")
+@login_required
+def activity_log():
+    activities = ActivityLog.query.order_by(
+        ActivityLog.timestamp.desc()
+    ).limit(200).all()
+
+    return render_template(
+        "activity_log.html",
+        activities=activities
     )
 
 

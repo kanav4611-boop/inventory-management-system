@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log - Inventory Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <h2>📦 Inventory System</h2>
+        <div>
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('products') }}">Products</a>
+            <a href="{{ url_for('transactions') }}">Transactions</a>
+            <a href="{{ url_for('stock_summary') }}">Stock Summary</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Admin Activity Log</h1>
+        <p>Latest 200 recorded actions performed in the inventory system.</p>
+        {% if activities %}
+        <table>
+            <tr><th>Date &amp; Time</th><th>User</th><th>Action</th><th>Details</th></tr>
+            {% for item in activities %}
+            <tr>
+                <td>{{ item.timestamp }}</td>
+                <td>{{ item.username }}</td>
+                <td>{{ item.action }}</td>
+                <td>{{ item.details }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No activity has been recorded yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
