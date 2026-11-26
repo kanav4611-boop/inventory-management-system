@@ -200,6 +200,10 @@
                         <button>Edit</button>
                     </a>
 
+                    <form method="POST" action="{{ url_for('duplicate_product', id=product.id) }}" style="display:inline; padding:0; box-shadow:none;">
+                        <button type="submit">Duplicate</button>
+                    </form>
+
                     <form method="POST"
       action="{{ url_for('delete_product', id=product.id) }}"
       style="display:inline; padding:0; box-shadow:none;"

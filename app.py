@@ -425,6 +425,24 @@ def edit_product(id):
 # 8. Delete Product
 # -----------------------------------
 
+@app.route("/duplicate-product/<int:id>", methods=["POST"])
+@login_required
+def duplicate_product(id):
+    original = Product.query.get_or_404(id)
+    duplicate = Product(
+        name=f"{original.name} (Copy)",
+        category=original.category,
+        price=original.price,
+        quantity=0,
+        minimum_stock=original.minimum_stock
+    )
+    db.session.add(duplicate)
+    log_activity("Product Duplicated", f"Created a copy of product: {original.name}")
+    db.session.commit()
+    flash("Product copied successfully. Review its details and add stock when ready.", "success")
+    return redirect(url_for("edit_product", id=duplicate.id))
+
+
 @app.route("/delete-product/<int:id>", methods=["POST"])
 @login_required
 def delete_product(id):
