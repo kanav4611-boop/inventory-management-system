@@ -14,6 +14,18 @@
         <button type="button">📥 Export Low Stock CSV</button>
     </a>
 
+    <form method="GET" action="{{ url_for('low_stock') }}">
+        <input type="text" name="search" placeholder="Search low-stock product" value="{{ search }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for item in categories %}
+            <option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+        <a href="{{ url_for('low_stock') }}">Clear</a>
+    </form>
+
     <br>
 
     {% if products %}

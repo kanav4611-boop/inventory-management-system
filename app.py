@@ -716,13 +716,27 @@ def activity_log():
 @app.route("/low-stock")
 @login_required
 def low_stock():
-    products = Product.query.filter(
-        Product.quantity <= Product.minimum_stock
-    ).all()
+    search = request.args.get("search", "").strip()
+    category = request.args.get("category", "").strip()
+    query = Product.query.filter(Product.quantity <= Product.minimum_stock)
+
+    if search:
+        query = query.filter(Product.name.ilike(f"%{search}%"))
+    if category:
+        query = query.filter(Product.category == category)
+
+    products = query.order_by(Product.quantity.asc(), Product.name.asc()).all()
+    categories = [
+        item[0] for item in db.session.query(Product.category).distinct().all()
+        if item[0]
+    ]
 
     return render_template(
         "low_stock.html",
-        products=products
+        products=products,
+        search=search,
+        category=category,
+        categories=categories
     )
 
 
