@@ -703,13 +703,36 @@ def stock_summary():
 @app.route("/activity-log")
 @login_required
 def activity_log():
-    activities = ActivityLog.query.order_by(
+    search = request.args.get("search", "").strip()
+    action = request.args.get("action", "").strip()
+    query = ActivityLog.query
+
+    if search:
+        query = query.filter(
+            db.or_(
+                ActivityLog.username.ilike(f"%{search}%"),
+                ActivityLog.details.ilike(f"%{search}%")
+            )
+        )
+    if action:
+        query = query.filter(ActivityLog.action == action)
+
+    actions = [
+        item[0] for item in db.session.query(ActivityLog.action).distinct().all()
+        if item[0]
+    ]
+    page = request.args.get("page", 1, type=int)
+    pagination = query.order_by(
         ActivityLog.timestamp.desc()
-    ).limit(200).all()
+    ).paginate(page=page, per_page=20, error_out=False)
 
     return render_template(
         "activity_log.html",
-        activities=activities
+        activities=pagination.items,
+        pagination=pagination,
+        search=search,
+        action=action,
+        actions=actions
     )
 
 

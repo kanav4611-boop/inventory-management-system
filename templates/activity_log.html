@@ -20,6 +20,17 @@
     <div class="container">
         <h1>Admin Activity Log</h1>
         <p>Latest 200 recorded actions performed in the inventory system.</p>
+        <form method="GET" action="{{ url_for('activity_log') }}">
+            <input type="text" name="search" placeholder="Search user or details" value="{{ search }}">
+            <select name="action">
+                <option value="">All Actions</option>
+                {% for item in actions %}
+                <option value="{{ item }}" {% if action == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Filter</button>
+            <a href="{{ url_for('activity_log') }}">Clear</a>
+        </form>
         {% if activities %}
         <table>
             <tr><th>Date &amp; Time</th><th>User</th><th>Action</th><th>Details</th></tr>
@@ -34,6 +45,17 @@
         </table>
         {% else %}
         <p>No activity has been recorded yet.</p>
+        {% endif %}
+        {% if pagination %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('activity_log', page=pagination.prev_num, search=search, action=action) }}">Previous</a>
+            {% endif %}
+            <span>Page {{ pagination.page }} of {{ pagination.pages or 1 }}</span>
+            {% if pagination.has_next %}
+            <a href="{{ url_for('activity_log', page=pagination.next_num, search=search, action=action) }}">Next</a>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
 </body>
