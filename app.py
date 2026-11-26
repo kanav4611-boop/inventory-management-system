@@ -219,9 +219,36 @@ def home():
 
     total_transactions = Transaction.query.count()
 
+    total_inventory_value = db.session.query(
+        db.func.sum(Product.price * Product.quantity)
+    ).scalar() or 0
+
+    out_of_stock_products = Product.query.filter(
+        Product.quantity == 0
+    ).count()
+
     recent_transactions = Transaction.query.order_by(
         Transaction.date.desc()
     ).limit(5).all()
+
+    # Monthly stock movement chart data
+    movement_rows = db.session.query(
+        db.func.strftime("%Y-%m", Transaction.date).label("month"),
+        Transaction.transaction_type,
+        db.func.sum(Transaction.quantity)
+    ).group_by(
+        db.func.strftime("%Y-%m", Transaction.date),
+        Transaction.transaction_type
+    ).order_by("month").all()
+
+    monthly_totals = {}
+    for month, movement_type, total in movement_rows:
+        monthly_totals.setdefault(month, {"Stock In": 0, "Stock Out": 0})
+        monthly_totals[month][movement_type] = total
+
+    movement_months = list(monthly_totals.keys())
+    monthly_stock_in = [monthly_totals[m]["Stock In"] for m in movement_months]
+    monthly_stock_out = [monthly_totals[m]["Stock Out"] for m in movement_months]
 
     # Dashboard chart data
     category_data = db.session.query(
@@ -238,9 +265,14 @@ def home():
         total_stock=total_stock,
         low_stock_products=low_stock_products,
         total_transactions=total_transactions,
+        total_inventory_value=total_inventory_value,
+        out_of_stock_products=out_of_stock_products,
         recent_transactions=recent_transactions,
         chart_labels=chart_labels,
-        chart_values=chart_values
+        chart_values=chart_values,
+        movement_months=movement_months,
+        monthly_stock_in=monthly_stock_in,
+        monthly_stock_out=monthly_stock_out
     )
 
 
