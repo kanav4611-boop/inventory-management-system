@@ -85,22 +85,22 @@
 
 
         <form method="GET" action="{{ url_for('products') }}">
+            <input
+                type="text"
+                name="search"
+                placeholder="Search product..."
+                value="{{ search }}"
+            >
 
-    <input
-        type="text"
-        name="search"
-        placeholder="Search product..."
-        value="{{ search }}"
-        <select name="sort">
-    <option value="">Default Sorting</option>
-    <option value="name" {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
-    <option value="price_low" {% if sort == "price_low" %}selected{% endif %}>Price Low to High</option>
-    <option value="price_high" {% if sort == "price_high" %}selected{% endif %}>Price High to Low</option>
-    <option value="quantity" {% if sort == "quantity" %}selected{% endif %}>Lowest Stock First</option>
-</select>
-    >
+            <select name="sort">
+                <option value="">Default Sorting</option>
+                <option value="name" {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
+                <option value="price_low" {% if sort == "price_low" %}selected{% endif %}>Price Low to High</option>
+                <option value="price_high" {% if sort == "price_high" %}selected{% endif %}>Price High to Low</option>
+                <option value="quantity" {% if sort == "quantity" %}selected{% endif %}>Lowest Stock First</option>
+            </select>
 
-    <select name="category">
+            <select name="category">
         <option value="">All Categories</option>
 
         {% for item in categories %}

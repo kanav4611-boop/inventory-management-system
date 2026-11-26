@@ -1,4 +1,5 @@
 import sqlite3
+import math
 from datetime import datetime, timedelta
 from io import BytesIO
 from flask import send_file
@@ -282,7 +283,6 @@ def products():
 @app.route("/add-product", methods=["GET", "POST"])
 @login_required
 def add_product():
-
     error = None
 
     if request.method == "POST":
@@ -294,18 +294,16 @@ def add_product():
             quantity = int(request.form.get("quantity", ""))
             minimum_stock = int(request.form.get("minimum_stock", ""))
         except (ValueError, TypeError):
-            error = "Please enter valid numbers for price and quantities."
+            error = "Enter a valid price and whole-number quantities."
         else:
-            if not name:
-                error = "Product name is required."
-            elif not category:
-                error = "Category is required."
-            elif price < 0:
-                error = "Price cannot be negative."
-            elif quantity < 0:
-                error = "Quantity cannot be negative."
-            elif minimum_stock < 0:
-                error = "Minimum stock cannot be negative."
+            if not name or not category:
+                error = "Product name and category are required."
+            elif len(name) > 100 or len(category) > 100:
+                error = "Product name and category must be 100 characters or fewer."
+            elif not math.isfinite(price) or price < 0:
+                error = "Enter a valid, non-negative price."
+            elif quantity < 0 or minimum_stock < 0:
+                error = "Quantity and minimum stock cannot be negative."
             else:
                 product = Product(
                     name=name,
@@ -314,55 +312,12 @@ def add_product():
                     quantity=quantity,
                     minimum_stock=minimum_stock
                 )
-
                 db.session.add(product)
                 db.session.commit()
                 flash("Product added successfully!", "success")
                 return redirect(url_for("products"))
 
     return render_template("add_product.html", error=error)
-
-
-    if request.method == "POST":
-
-        name = request.form["name"]
-
-        category = request.form["category"]
-
-        price = float(
-            request.form["price"]
-        )
-
-        quantity = int(
-            request.form["quantity"]
-        )
-
-        minimum_stock = int(
-            request.form["minimum_stock"]
-        )
-
-        # Create new product
-        product = Product(
-            name=name,
-            category=category,
-            price=price,
-            quantity=quantity,
-            minimum_stock=minimum_stock
-        )
-
-        # Save product to database
-        db.session.add(product)
-
-        db.session.commit()
-    
-        # Go back to products page
-        return redirect(
-            url_for("products")
-        )
-
-    return render_template(
-        "add_product.html"
-    )
 
 
 # -----------------------------------
@@ -385,25 +340,22 @@ def edit_product(id):
             quantity = int(request.form.get("quantity", ""))
             minimum_stock = int(request.form.get("minimum_stock", ""))
         except (ValueError, TypeError):
-            error = "Please enter valid numbers for price and quantities."
+            error = "Enter a valid price and whole-number quantities."
         else:
-            if not name:
-                error = "Product name is required."
-            elif not category:
-                error = "Category is required."
-            elif price < 0:
-                error = "Price cannot be negative."
-            elif quantity < 0:
-                error = "Quantity cannot be negative."
-            elif minimum_stock < 0:
-                error = "Minimum stock cannot be negative."
+            if not name or not category:
+                error = "Product name and category are required."
+            elif len(name) > 100 or len(category) > 100:
+                error = "Product name and category must be 100 characters or fewer."
+            elif not math.isfinite(price) or price < 0:
+                error = "Enter a valid, non-negative price."
+            elif quantity < 0 or minimum_stock < 0:
+                error = "Quantity and minimum stock cannot be negative."
             else:
                 product.name = name
                 product.category = category
                 product.price = price
                 product.quantity = quantity
                 product.minimum_stock = minimum_stock
-
                 db.session.commit()
                 flash("Product updated successfully!", "success")
                 return redirect(url_for("products"))
@@ -413,7 +365,6 @@ def edit_product(id):
         product=product,
         error=error
     )
-
 
 
 # -----------------------------------
@@ -449,27 +400,22 @@ def stock_in(id):
                 error = "Quantity must be greater than zero."
             else:
                 product.quantity += quantity
-
                 transaction = Transaction(
                     product_id=product.id,
                     product_name=product.name,
                     transaction_type="Stock In",
                     quantity=quantity
                 )
-
-            db.session.add(transaction)
-            db.session.commit()
-
-            flash("Stock added successfully!", "success")
-
-            return redirect(url_for("products"))
+                db.session.add(transaction)
+                db.session.commit()
+                flash("Stock added successfully!", "success")
+                return redirect(url_for("products"))
 
     return render_template(
         "stock_in.html",
         product=product,
         error=error
     )
-
 
 
 @app.route("/stock-out/<int:id>", methods=["GET", "POST"])
