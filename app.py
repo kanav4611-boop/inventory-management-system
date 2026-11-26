@@ -510,6 +510,21 @@ def stock_out(id):
     )
 
 
+@app.route("/product/<int:id>")
+@login_required
+def product_details(id):
+    product = Product.query.get_or_404(id)
+    recent_transactions = Transaction.query.filter_by(
+        product_id=product.id
+    ).order_by(Transaction.date.desc()).limit(10).all()
+
+    return render_template(
+        "product_details.html",
+        product=product,
+        recent_transactions=recent_transactions
+    )
+
+
 @app.route("/transactions")
 @login_required
 def transactions():

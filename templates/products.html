@@ -142,7 +142,7 @@
                 </td>
 
                 <td>
-                    {{ product.name }}
+                    <a href="{{ url_for('product_details', id=product.id) }}">{{ product.name }}</a>
                 </td>
 
                 <td>
