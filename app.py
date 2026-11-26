@@ -641,6 +641,26 @@ def reorder_report():
     )
 
 
+@app.route("/category-report")
+@login_required
+def category_report():
+    rows = db.session.query(
+        Product.category,
+        db.func.count(Product.id).label("product_count"),
+        db.func.sum(Product.quantity).label("total_units"),
+        db.func.sum(Product.price * Product.quantity).label("inventory_value")
+    ).group_by(Product.category).order_by(Product.category.asc()).all()
+
+    grand_value = sum((row.inventory_value or 0) for row in rows)
+    grand_units = sum((row.total_units or 0) for row in rows)
+    return render_template(
+        "category_report.html",
+        rows=rows,
+        grand_value=grand_value,
+        grand_units=grand_units
+    )
+
+
 @app.route("/stock-summary")
 @login_required
 def stock_summary():

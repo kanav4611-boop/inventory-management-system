@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Category Inventory Report</title><link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"></head>
+<body><div class="navbar"><h2>📦 Inventory System</h2><div>
+<a href="{{ url_for('home') }}">Dashboard</a><a href="{{ url_for('products') }}">Products</a>
+<a href="{{ url_for('transactions') }}">Transactions</a><a href="{{ url_for('logout') }}">Logout</a>
+</div></div><div class="container">
+<h1>Category Inventory Report</h1>
+<p>Total units across all categories: <strong>{{ grand_units }}</strong></p>
+<p>Total inventory value: <strong>₹{{ "%.2f"|format(grand_value) }}</strong></p>
+<table><tr><th>Category</th><th>Product Count</th><th>Total Units</th><th>Inventory Value</th></tr>
+{% for row in rows %}<tr><td>{{ row.category or "Uncategorized" }}</td><td>{{ row.product_count }}</td>
+<td>{{ row.total_units or 0 }}</td><td>₹{{ "%.2f"|format(row.inventory_value or 0) }}</td></tr>
+{% else %}<tr><td colspan="4">No product categories available.</td></tr>{% endfor %}
+</table></div></body></html>
