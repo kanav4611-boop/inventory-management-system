@@ -903,21 +903,31 @@ def export_transactions():
     import csv
     from io import StringIO
 
-    transactions = Transaction.query.order_by(
-        Transaction.date.desc()
-    ).all()
+    search = request.args.get("search", "").strip()
+    transaction_type = request.args.get("type", "").strip()
+    date_from = request.args.get("date_from", "").strip()
+    date_to = request.args.get("date_to", "").strip()
+    query = Transaction.query
 
+    if search:
+        query = query.filter(Transaction.product_name.ilike(f"%{search}%"))
+    if transaction_type in ["Stock In", "Stock Out"]:
+        query = query.filter(Transaction.transaction_type == transaction_type)
+
+    try:
+        if date_from:
+            query = query.filter(Transaction.date >= datetime.strptime(date_from, "%Y-%m-%d"))
+        if date_to:
+            end_date = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
+            query = query.filter(Transaction.date < end_date)
+    except ValueError:
+        flash("Invalid date filter. Export cancelled.", "error")
+        return redirect(url_for("transactions"))
+
+    transactions = query.order_by(Transaction.date.desc()).all()
     output = StringIO()
     writer = csv.writer(output)
-
-    writer.writerow([
-        "ID",
-        "Product",
-        "Transaction Type",
-        "Quantity",
-        "Date"
-    ])
-
+    writer.writerow(["ID", "Product", "Transaction Type", "Quantity", "Date"])
     for transaction in transactions:
         writer.writerow([
             transaction.id,
@@ -929,11 +939,12 @@ def export_transactions():
 
     response = make_response(output.getvalue())
     response.headers["Content-Disposition"] = (
-        "attachment; filename=transaction_history.csv"
+        "attachment; filename=filtered_transaction_history.csv"
     )
     response.headers["Content-Type"] = "text/csv; charset=utf-8"
-
     return response
+
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template("404.html"), 404
