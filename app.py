@@ -812,6 +812,24 @@ def export_low_stock():
     return response
 
 
+@app.route("/download-product-csv-template")
+@login_required
+def download_product_csv_template():
+    from io import StringIO
+    import csv
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["name", "category", "price", "quantity", "minimum_stock"])
+    writer.writerow(["Wireless Mouse", "Electronics", "799.00", "15", "5"])
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=product_import_template.csv"
+    )
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    return response
+
+
 @app.route("/import-products", methods=["GET", "POST"])
 @login_required
 def import_products():

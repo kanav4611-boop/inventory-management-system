@@ -5,6 +5,7 @@
 <h1>Import Products from CSV</h1>
 <p>Upload a UTF-8 CSV file with these exact column headings:</p>
 <code>name, category, price, quantity, minimum_stock</code>
+<p><a href="{{ url_for('download_product_csv_template') }}">Download a ready-to-fill CSV template</a></p>
 <p>Maximum 500 product rows per upload. All rows are validated before saving.</p>
 {% if error %}<div class="form-error">{{ error }}</div>{% endif %}
 <form method="POST" enctype="multipart/form-data">
